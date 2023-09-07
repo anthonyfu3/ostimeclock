@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mt-5 container">
+    <h2 class="mb-4">Admin Dashboard</h2>
+    <ul class="nav nav-tabs">
+        <a class="nav-link active" id="punches-tab" data-bs-toggle="tab" href="#punches-overview">Punches
+            Overview</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="users-tab" data-bs-toggle="tab" href="#users">Users</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="daily-hours-tab" data-bs-toggle="tab" href="#daily-hours">Daily Hours</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="weekly-hours-tab" data-bs-toggle="tab" href="#weekly-hours">Weekly Hours</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="physical-timeclock-tab" data-bs-toggle="tab" href="#physical-timeclock">Physical
+                Timeclock</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="web-timeclock-tab" data-bs-toggle="tab" href="#web-timeclock">Web Timeclock</a>
+        </li>
+        <!-- Add more tabs as needed -->
+    </ul>
+
+    <div class="tab-content mt-3">
+        <!-- Punches Overview Tab Content -->
+        <div class="tab-pane fade show active" id="punches-overview">
+            <table id="punchesTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">Username</th>
+                        <th scope="col">Punch Type</th>
+                        <th scope="col">Timestamp</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for punch in punches %}
+                    <tr>
+                        <td>{{ punch.user.username }}</td>
+                        <td>{{ punch.punch_type }}</td>
+                        <td>{{ punch.timestamp }}</td>
+                        <td><a href="{% url 'admin:attendance_app_punch_change' punch.id %}"
+                                class="btn btn-primary btn-sm">Edit</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="web-timeclock">
+            <!-- Digital Date & Time Display -->
+            <div class="text-center mt-5">
+                <h1 id="digitalDate">DD-MM-YYYY</h1>
+                <h2 id="digitalTime">HH:MM:SS</h2>
+            </div>
+
+            <!-- Employee Number Input & Punch Buttons -->
+            <div class="mt-5 text-center">
+                <div class="mb-3">
+                    <label for="employeeNumber" class="form-label">Employee Number</label>
+                    <input type="text" class="form-control" id="employeeNumber" placeholder="Enter Employee Number">
+                </div>
+                <button class="btn btn-success" id="punchInBtn">Punch In</button>
+                <button class="btn btn-danger" id="punchOutBtn">Punch Out</button>
+            </div>
+        </div>
+
+        <!-- Users Tab Content -->
+        <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+            <a href="{% url 'admin:attendance_app_customuser_add' %}" class="btn btn-success mb-3">Add User</a>
+            <table id="usersTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Date Joined</th>
+                        <th>Employee Number</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.first_name }}</td>
+                        <td>{{ user.last_name }}</td>
+                        <td>{{ user.date_joined }}</td>
+                        <td>{{ user.employee_number }}</td>
+                        <td><a href="{% url 'admin:attendance_app_customuser_change' user.id %}"
+                                class="btn btn-primary">Edit</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Daily Hours Tab Content -->
+        <div class="tab-pane fade" id="daily-hours">
+            <form method="get">
+                <label for="date">Select Date:</label>
+                <input type="date" name="date" id="dailyDateInput" value="{{ date_filter }}">
+                <input type="submit" value="Show">
+            </form>
+            <table id="dailyHoursTable" class="table table-striped table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Date</th>
+                        <th>Total Hours</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_data in users_data %}
+                    <tr>
+                        <td>{{ user_data.user.username }}</td>
+                        <td>{{ date_filter }}</td>
+                        <td>{{ user_data.total_hours }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+
+        <!-- Weekly Hours Tab Content -->
+        <div class="tab-pane fade" id="weekly-hours">
+            <form method="get">
+                <label for="week">Select Week:</label>
+                <input type="week" name="week" id="weekInput" value="{{ week_filter }}">
+                <input type="submit" value="Show">
+            </form>
+            <table id="weeklyHoursTable" class="table table-striped table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Monday</th>
+                        <th>Tuesday</th>
+                        <th>Wednesday</th>
+                        <th>Thursday</th>
+                        <th>Friday</th>
+                        <th>Saturday</th>
+                        <th>Sunday</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_data in users_data %}
+                    <tr>
+                        <td>{{ user_data.user.username }}</td>
+                        <td>{{ user_data.weekly_hours.Monday }}</td>
+                        <td>{{ user_data.weekly_hours.Tuesday }}</td>
+                        <td>{{ user_data.weekly_hours.Wednesday }}</td>
+                        <td>{{ user_data.weekly_hours.Thursday }}</td>
+                        <td>{{ user_data.weekly_hours.Friday }}</td>
+                        <td>{{ user_data.weekly_hours.Saturday }}</td>
+                        <td>{{ user_data.weekly_hours.Sunday }}</td>
+                        <td>{{ total_weekly_hours }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+
+        <!-- Physical Timeclock Tab Content -->
+        <div class="tab-pane fade" id="physical-timeclock" role="tabpanel" aria-labelledby="physical-timeclock-tab">
+            <!-- Register New Timeclock Box -->
+            <div class="mb-5">
+                <h3>Register New Timeclock Box</h3>
+                <form id="registerBoxForm">
+                    <div class="mb-3">
+                        <label for="boxId" class="form-label">Box ID / Serial Number</label>
+                        <input type="text" class="form-control" id="boxId" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="boxLocation" class="form-label">Location / Description</label>
+                        <input type="text" class="form-control" id="boxLocation" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Register Box</button>
+                </form>
+            </div>
+
+            <!-- Connected Boxes Status -->
+            <div class="mb-5">
+                <h3>Connected Boxes Status</h3>
+                <table id="boxesStatusTable" class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Box ID / Serial Number</th>
+                            <th>Location / Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Last Punch Status -->
+            <div>
+                <h3>Last Punch Status</h3>
+                <p id="lastPunchStatus">Last punch was successful at [timestamp] by [employee number].</p>
+            </div>
+        </div>
+
+
+        <script>
+            // Digital Clock Functions
+            function updateClock() {
+                const now = new Date();
+                document.getElementById('digitalDate').innerText = now.toLocaleDateString();
+                document.getElementById('digitalTime').innerText = now.toLocaleTimeString();
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            // Punch In/Out Functions
+            function punchIn() {
+                const employeeNumber = document.getElementById('employeeNumber').value;
+                fetch(`/api/punch_in/?employee_number=${employeeNumber}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.status === 'success' ? data.message : 'Error punching in.');
+                    });
+            }
+
+            function punchOut() {
+                const employeeNumber = document.getElementById('employeeNumber').value;
+                fetch(`/api/punch_out/?employee_number=${employeeNumber}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.status === 'success' ? data.message : 'Error punching out.');
+                    });
+            }
+
+
+            document.getElementById('punchInBtn').addEventListener('click', punchIn);
+            document.getElementById('punchOutBtn').addEventListener('click', punchOut);
+
+
+
+            // Register New Timeclock Box
+            document.getElementById('registerBoxForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                const boxId = document.getElementById('boxId').value;
+                const boxLocation = document.getElementById('boxLocation').value;
+                fetch(`/api/register_box/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ boxId, boxLocation })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('Box registered successfully!');
+                            const tableBody = document.querySelector('#boxesStatusTable tbody');
+                            const row = tableBody.insertRow();
+                            row.insertCell().textContent = boxId;
+                            row.insertCell().textContent = boxLocation;
+                            row.insertCell().textContent = 'Connected';
+                        } else {
+                            alert('Error registering box.');
+                        }
+                    });
+            });
+
+            document.getElementById('weekInput').addEventListener('change', function () {
+                const selectedWeek = this.value;
+                fetch(`/admin_panel/?week=${selectedWeek}`)
+                    .then(response => response.text())
+                    .then(html => {
+                        const currentTable = document.querySelector("#weeklyHoursTable");
+                        const parser = new DOMParser();
+                        const newDoc = parser.parseFromString(html, "text/html");
+                        const newTable = newDoc.querySelector("#weeklyHoursTable");
+                        currentTable.replaceWith(newTable);
+                    })
+                    .catch(error => {
+                        console.error("Error fetching weekly data:", error);
+                        alert("Error fetching data for the selected week.");
+                    });
+            });
+
+
+        </script>
+    </div>
+    {% endblock %}
